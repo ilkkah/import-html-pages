@@ -478,8 +478,14 @@ class HTML_Import extends WP_Importer {
 						$xquery .= '[@'.$tagatt.'="'.$attval.'"]';
 					$date = $xml->xpath($xquery);
 					if (is_array($date) && isset($date[0]) && is_object($date[0])) {
-						if (isset($date[0]))
+						if (isset($date[0])) {
+							echo '<br>----------<br>';
+							echo $date[0];
+							echo '<br>';
+							echo $date[0]->asXML();
+							echo '<br>----------<br>';
 							$stripdate = $date[0]->asXML(); // asXML() preserves HTML in content
+						}
 						$date = strip_tags($date[0]);
 						$date = strtotime($date);
 						//echo $date; exit;
@@ -1114,7 +1120,7 @@ class HTML_Import extends WP_Importer {
 
 $html_import = new HTML_Import();
 
-register_importer('html', __('HTML', 'import-html-pages'), sprintf(__('Import the contents of HTML files as posts, pages, or any custom post type. Visit <a href="%s">the options page</a> first to select which portions of your documents should be imported.', 'import-html-pages'), 'options-general.php?page=html-import.php'), array ($html_import, 'dispatch'));
+register_importer('html', __('Static import', 'import-html-pages'), sprintf(__('Import the contents of HTML files as posts, pages, or any custom post type. Visit <a href="%s">the options page</a> first to select which portions of your documents should be imported.', 'import-html-pages'), 'options-general.php?page=html-import.php'), array ($html_import, 'dispatch'));
 
 
 // in case this server doesn't have php_mbstring enabled in php.ini...
