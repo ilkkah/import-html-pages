@@ -479,15 +479,26 @@ class HTML_Import extends WP_Importer {
 					$date = $xml->xpath($xquery);
 					if (is_array($date) && isset($date[0]) && is_object($date[0])) {
 						if (isset($date[0])) {
-							echo '<br>----------<br>';
-							echo $date[0];
-							echo '<br>';
-							echo $date[0]->asXML();
-							echo '<br>----------<br>';
 							$stripdate = $date[0]->asXML(); // asXML() preserves HTML in content
+							$s = '';
+							$mones = 1;
+							foreach ($date[0]->children() as $k => $data) {
+						    	$s .= $data;
+						    	if ($mones === 1) {
+						    		$s .= ' ';
+						    	}
+						    	else if ($mones === 2) {
+						    		$s .= ', ';
+						    	}
+						    	$mones += 1;
+							}
+
+							$date = strtotime($s);
 						}
-						$date = strip_tags($date[0]);
-						$date = strtotime($date);
+						else {
+							$date = strip_tags($date[0]);
+							$date = strtotime($date);
+						}
 						//echo $date; exit;
 					}
 					else { // fallback 
