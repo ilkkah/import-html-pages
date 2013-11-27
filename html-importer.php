@@ -569,8 +569,9 @@ class HTML_Import extends WP_Importer {
 						if (!empty($tagatt))
 							$xquery .= '[@'.$tagatt.'="'.$attval.'"]';
 						$content = $xml->xpath($xquery);
-						if (is_array($content) && isset($content[0]) && is_object($content[0]))
+						if (is_array($content) && isset($content[0]) && is_object($content[0])) {
 							$customfields[$fieldname] = strip_tags($content[0]);
+						}
 					}
 				}
 			}
@@ -586,6 +587,42 @@ class HTML_Import extends WP_Importer {
 				$my_post['post_excerpt'] = (string)$my_post['post_excerpt'];
 			}
 			
+
+			// excerpt short
+			$excerpt_short = $xml->xpath('//meta[@name="description-short"]');
+			if (!empty($excerpt_short)) {
+				if (is_array($excerpt_short) && isset($excerpt_short[0]))
+					$excerpt_short = $excerpt_short['post_excerpt'][0]['content'];
+				if (is_array($excerpt_short))
+					$excerpt_short = implode('',$excerpt_short);
+				$my_post['excerpt_short'] = (string)$excerpt_short;
+			}			
+
+			// tags
+			$taglist_query = '//ul[@id="taglist"]';
+			$taglist_content = $xml->xpath($taglist_query);
+			$taglist = array();
+			if (!empty($taglist_content) && !empty($taglist_content[0]) && !empty($taglist_content[0])) {
+				if (!empty($taglist_content[0]->li)) {
+					$x = $taglist_content[0]->xpath('li/a');
+					
+					foreach ($x as $x1 => $x2) {
+						array_push($taglist, $x2->asXML());
+					}
+				}
+			}
+			/*
+			if (is_array($taglist_content) && isset($taglist_content[0]) && is_object($taglist_content[0]))
+				$my_post['post_content'] = $content[0]->asXML(); // asXML() preserves HTML in content
+			else {  // fallback
+				$content = $xml->xpath('//body');
+				if (is_array($content) && isset($content[0]) && is_object($content[0]))
+					$my_post['post_content'] = $content[0]->asXML();
+				else
+					$my_post['post_content'] = '';
+			}
+			*/		
+
 			// status
 			$my_post['post_status'] = $options['status'];
 			
@@ -637,11 +674,18 @@ class HTML_Import extends WP_Importer {
 		// ... and all the taxonomies...
 		$taxonomies = get_taxonomies( array( 'public' => true ), 'objects', 'and' );
 		foreach ( $taxonomies as $tax ) {
-			if (isset($options[$tax->name]))
+			if (isset($options[$tax->name])) {
 				wp_set_post_terms( $post_id, $options[$tax->name], $tax->name, false);
+			}
 		}
-		if (isset($customfieldtags))
+
+		/*if (isset($customfieldtags)) {
 			wp_set_post_terms( $post_id, $customfieldtags, 'post_tag', false);
+		}*/
+
+		if (!empty($taglist)) {
+			wp_set_post_terms( $post_id, $taglist, 'post_tag', false);
+		}
 		
 		// ...and set the page template, if any
 		if (isset($options['page_template']) && !empty($options['page_template']))
